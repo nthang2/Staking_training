@@ -1,0 +1,21 @@
+{
+  "name": "staking",
+  "version": "1.0.0",
+  "description": "This is a template to build smart contracts in Rust to run inside a [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) module on all chains that enable it. To understand the framework better, please read the overview in the [cosmwasm repo](https://github.com/CosmWasm/cosmwasm/blob/master/README.md), and dig into the [cosmwasm docs](https://www.cosmwasm.com). This assumes you understand the theory and just want to get coding.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cosmjs/amino": "0.32.4",
+    "@cosmjs/cosmwasm-stargate": "0.32.4",
+    "@cosmjs/encoding": "0.32.4",
+    "@cosmjs/proto-signing": "0.32.4",
+    "@cosmjs/stargate": "0.32.4",
+    "@cosmjs/tendermint-rpc": "0.32.4",
+    "dotenv": "^16.4.5"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}
