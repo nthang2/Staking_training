@@ -8,7 +8,7 @@ const getTxAPI = "https://lcd.orai.io/cosmos/"
 
 const rpcEndpoint = "https://rpc.orai.io:443/";
 const chainID = "Oraichain"
-const mnemonic = process.env.MNEMONIC_ADMIN!;
+const mnemonic = process.env.MNEMONIC_USER!;
 
 const CONTRACT_ADDRESS = "orai1yum9k33wzpr9ycyt6c6q2xzzmpsaplweeq0cyudukj0l52lu3fmq9ast78"
 const OCH_TOKEN = process.env.OCH_TOKEN!
@@ -148,14 +148,42 @@ async function setRewardPerSecond(amount: String) {
     }
 }
 
+async function sendOCH (token_address: string, amount: String) {
+    const client = await getClient();
+    const wallet = await getWallet();
+    const senderAddress = (await wallet.getAccounts())[0].address;
+
+    const msg = { stake: {} }
+    const sendMsg = {
+        send: {
+            contract: CONTRACT_ADDRESS,
+            amount: amount,
+            msg: Buffer.from(JSON.stringify(msg)).toString("base64")
+        }
+    }
+
+    const fee = "auto"
+
+    try {
+        const result = await client.execute(senderAddress, token_address, sendMsg, fee, "Send OCH");
+        console.log("Transaction successful!", result.transactionHash);
+        console.log("Send OCHMsg_true:", JSON.stringify(sendMsg));
+    } catch (error) {
+        console.log("Error: ", error);
+        console.log("Send OCHMsg:", JSON.stringify(sendMsg));
+    }
+}
+
 async function main() {
     const contractAddress = "orai1yum9k33wzpr9ycyt6c6q2xzzmpsaplweeq0cyudukj0l52lu3fmq9ast78"
     const amount: String = "1110"
+    const token_address = OCH_TOKEN
     //increaseAllowance("1000000")
     //sendStake(contractAddress, amount)
     //withdrawStake(contractAddress, amount)
     //claimReward(contractAddress)
-    setRewardPerSecond("1")
+    //setRewardPerSecond("1")
+    sendOCH(token_address, amount)
 
     
     

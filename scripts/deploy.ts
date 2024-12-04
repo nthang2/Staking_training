@@ -12,7 +12,7 @@ const getTxAPI = "https://lcd.orai.io/cosmos/"
 
 const rpcEndpoint = "https://rpc.orai.io:443/";
 const chainID = "Oraichain"
-const mnemonic = process.env.MNEMONIC!;
+const mnemonic = process.env.MNEMONIC_ADMIN!;
 
 
 async function getWallet(): Promise<Secp256k1HdWallet> {

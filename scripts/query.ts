@@ -49,7 +49,8 @@ async function queryUserStaked(){
     const queryMsg = 
     {
         user_staked: {
-            user_address: "orai1tyl0wdg7shhv9m44kq34za5gqanu7uwfz2xvrc"
+            //user_address: "orai1tyl0wdg7shhv9m44kq34za5gqanu7uwfz2xvrc"
+            user_address: "orai1s2y8rjlvru9ew5nn3kg5nmh08hn5h9waukqcm0"
         }
     }
 
@@ -68,7 +69,8 @@ async function queryUserRewards(){
     const queryMsg = 
     {
         user_rewards: {
-            user_address: "orai1tyl0wdg7shhv9m44kq34za5gqanu7uwfz2xvrc"
+            //user_address: "orai1tyl0wdg7shhv9m44kq34za5gqanu7uwfz2xvrc"
+            user_address: "orai1s2y8rjlvru9ew5nn3kg5nmh08hn5h9waukqcm0"
         }
     }
 
@@ -81,9 +83,9 @@ async function queryUserRewards(){
 }
 
 async function main() {
-    // await queryRewardPerSecond();
-    // await queryTotalStaked();
-    // await queryUserStaked();
+    await queryRewardPerSecond();
+    await queryTotalStaked();
+    await queryUserStaked();
     await queryUserRewards();
 }
 main();
