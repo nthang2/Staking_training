@@ -85,6 +85,7 @@ pub fn execute(
     match msg {
         ExecuteMsg::AdminSetRewardPerSecond { new_reward_per_second } => execute_admin_set_reward_per_second(deps, env, info, new_reward_per_second),
         ExecuteMsg::UserSendStake { amount_stake} => execute_user_send_stake(deps, env, info, amount_stake),
+        ExecuteMsg::Receive(msg) => receive_cw20(deps, env, info, msg),
         ExecuteMsg::UserWithdrawStake { amount_withdraw } => execute_user_withdraw_stake(deps, env, info, amount_withdraw),
         ExecuteMsg::UserClaimReward {} => execute_user_claim_reward(deps, env, info),
     }
@@ -226,6 +227,90 @@ fn execute_user_send_stake(
             )       
 
         
+}
+
+fn receive_cw20 (
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    cw20_msg: Cw20ReceiveMsg,
+) -> Result<Response, ContractError> {
+    let token_addr = info.sender.clone();
+    let config = CONFIG.load(deps.storage)?;
+
+    if token_addr != config.och_token {
+        return Err(ContractError::Unauthorized {});
+    }
+    
+    let exchange_rate = EXCHANGE_RATE.load(deps.storage)?;
+    let last_exchange_rate = exchange_rate.exchange_rate;
+    let last_update_time = exchange_rate.last_update_time;
+
+    let delta_time = Uint128::from(env.block.time.seconds() - last_update_time.seconds());
+
+    let total_staked = TOTAL_STAKED.load(deps.storage)?.total_staked;
+    let new_total_staked = total_staked + cw20_msg.amount;
+
+    let reward_per_second = REWARD_PER_SECOND.load(deps.storage)?.reward_per_second;
+
+    let user_staked = USER_STAKED.load(deps.storage, deps.api.addr_validate(&cw20_msg.sender)?).unwrap_or(UserStaked {
+        number_staked: Uint128::from(0u128),
+        last_time_update: env.block.time,
+        last_exr_when_interact: last_exchange_rate,
+    });
+
+    let number_user_staked = user_staked.number_staked;
+
+
+    let new_exchange_rate = last_exchange_rate + Decimal::from_ratio((reward_per_second * delta_time*DECIMAL),new_total_staked);
+    // khong can tinh current exr khi stake, chi can tinh khi withdraw hoac claim reward
+
+    let update_user_staked = UserStaked {
+        number_staked: number_user_staked + cw20_msg.amount,
+        last_time_update: env.block.time,
+        last_exr_when_interact: new_exchange_rate,
+    };
+
+    
+    let update_total_staked = TotalStaked {
+        total_staked: new_total_staked,
+    };
+
+    let update_exchange_rate = ExchangeRate {
+        exchange_rate: new_exchange_rate,
+        last_update_time: env.block.time,
+    };
+
+    let user_reward = USER_REWARD.load(deps.storage, deps.api.addr_validate(&cw20_msg.sender)?)
+                                            .unwrap_or(UserReward {
+                                                number_reward: Uint128::from(0u128),
+                                                last_time_update: env.block.time,
+                                                exr_last_update: new_exchange_rate,
+                                            });
+    
+    let new_number_reward = user_reward.number_reward + (number_user_staked * (new_exchange_rate - user_reward.exr_last_update))/DECIMAL;
+
+    USER_STAKED.save(deps.storage, deps.api.addr_validate(&cw20_msg.sender)?, &update_user_staked)?;
+    TOTAL_STAKED.save(deps.storage, &update_total_staked)?;
+    EXCHANGE_RATE.save(deps.storage, &update_exchange_rate)?;
+    
+    USER_REWARD.save(deps.storage, deps.api.addr_validate(&cw20_msg.sender)?, &UserReward {
+        number_reward: new_number_reward,
+        last_time_update: env.block.time,
+        exr_last_update: new_exchange_rate,
+    })?;
+
+    let config = CONFIG.load(deps.storage)?;
+    let contract_addr = config.contract_addr;
+    let contract_addr_clone = env.contract.address.to_string();
+
+    Ok(Response::new()
+            .add_attribute("action", "user_send_stake")
+            .add_attribute("user staked", update_user_staked.number_staked.to_string())
+            .add_attribute("last exchange rate when interact", update_user_staked.last_exr_when_interact.to_string())
+            .add_attribute("total staked", update_total_staked.total_staked.to_string())    
+            .add_attribute("new exchange rate", update_exchange_rate.exchange_rate.to_string())
+    )
 }
 
 

@@ -1,6 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Uint128};
-use cw20::Expiration;
+use cw20::{Cw20ReceiveMsg, Expiration};
 use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
 
@@ -23,6 +23,7 @@ pub enum ExecuteMsg {
     UserSendStake {
         amount_stake: Uint128
     },
+    Receive (Cw20ReceiveMsg),
     UserWithdrawStake {
         amount_withdraw: Uint128
     },
